@@ -155,10 +155,10 @@ if st.button("Run Simulation"):
     st.dataframe(result_df, use_container_width=True)
     st.write(f"**Average Turnaround Time:** `{avg_turnaround:.2f}`")
 
-    # Gantt chart with queue
+    # Gantt chart with queue (expanded view)
     def draw_gantt_with_queue(gantt_data, queue_snapshots):
         max_time = max(end_time.values())
-        fig, ax = plt.subplots(figsize=(14, 6))
+        fig, ax = plt.subplots(figsize=(18, 8))  # Expanded size
         cmap = plt.colormaps.get_cmap('tab20')
         colors = {f'J{i+1}': mcolors.to_hex(cmap(i / max(len(processes), 1))) for i in range(len(processes))}
         cpu_ypos = {cpu: num_cpus - idx for idx, cpu in enumerate(cpu_names)}
@@ -205,4 +205,4 @@ if st.button("Run Simulation"):
         return fig
 
     fig = draw_gantt_with_queue(gantt_data, queue_snapshots)
-    st.pyplot(fig)
+    st.pyplot(fig, use_container_width=True)
