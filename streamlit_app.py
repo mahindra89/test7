@@ -6,11 +6,23 @@ from matplotlib.lines import Line2D
 import pandas as pd
 import random
 
-# Title
+# --- Maximize page width and remove side padding ---
+st.set_page_config(layout="wide")
+st.markdown("""
+    <style>
+        .main .block-container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+            max-width: 100%;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- Title ---
 st.title("STRF Scheduling (with quantum time)")
 
-# --- Full-width Top Input Row ---
-col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+# --- Input Row ---
+col1, col2, col3, col4 = st.columns(4)
 with col1:
     num_jobs = st.number_input("Number of Jobs", min_value=1, max_value=10, value=4)
 with col2:
@@ -20,13 +32,13 @@ with col3:
 with col4:
     quantum_time = st.number_input("Quantum Time", value=2.0)
 
-# --- Randomizer Button ---
-if 'random_values' not in st.session_state:
-    st.session_state.random_values = []
-
+# --- Random job generator ---
 def get_random_half_step(min_val, max_val):
     steps = int((max_val - min_val) * 2) + 1
     return round(min_val + 0.5 * random.randint(0, steps - 1), 1)
+
+if 'random_values' not in st.session_state:
+    st.session_state.random_values = []
 
 if st.button("Randomize Job Times"):
     st.session_state.random_values = [
@@ -34,14 +46,14 @@ if st.button("Randomize Job Times"):
         for _ in range(num_jobs)
     ]
 
-# --- Job Inputs (Clean, wide layout) ---
+# --- Job Inputs ---
 processes = []
 for i in range(num_jobs):
     st.markdown(f"### Job J{i+1}")
     default_arrival = st.session_state.random_values[i]['arrival'] if i < len(st.session_state.random_values) else 0.0
     default_burst = st.session_state.random_values[i]['burst'] if i < len(st.session_state.random_values) else 3.0
 
-    c1, c2 = st.columns([1, 1])
+    c1, c2 = st.columns(2)
     with c1:
         arrival = st.number_input(f"Arrival Time for J{i+1}", value=default_arrival, key=f"arrival_{i}")
     with c2:
