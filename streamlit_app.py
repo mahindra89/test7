@@ -2,10 +2,11 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.colors as mcolors
+import pandas as pd
 import random
 
 # Title
-st.title("STRF Scheduling Algorithm")
+st.title("STRF Scheduling Algorithm (with quantum time)")
 
 # Inputs
 num_jobs = st.number_input("Enter the number of jobs:", min_value=1, max_value=10, value=3)
@@ -13,21 +14,18 @@ num_cpus = st.number_input("Enter the number of CPUs:", min_value=1, max_value=4
 chunk_unit = st.number_input("Enter the time unit to break each job into (e.g., 0.5, 1.0, 2.0):", value=1.0)
 quantum_time = st.number_input("Enter the quantum time (how frequently jobs are scheduled):", value=2.0)
 
-# Helper: generate float ending in .0 or .5
+# Helper: random value ending in .0 or .5
 def get_random_half_step(min_val, max_val):
     steps = int((max_val - min_val) * 2) + 1
     return round(min_val + 0.5 * random.randint(0, steps - 1), 1)
 
-# Button for random job values
+# Random button
 if 'random_values' not in st.session_state:
     st.session_state.random_values = []
 
 if st.button("Random Values"):
     st.session_state.random_values = [
-        {
-            'arrival': get_random_half_step(0, 5),
-            'burst': get_random_half_step(1, 10)
-        }
+        {'arrival': get_random_half_step(0, 5), 'burst': get_random_half_step(1, 10)}
         for _ in range(num_jobs)
     ]
 
@@ -42,7 +40,7 @@ for i in range(num_jobs):
     burst = st.number_input(f"Enter burst time for Job J{i+1}:", value=default_burst, key=f"burst_{i}")
     processes.append({'id': f'J{i+1}', 'arrival_time': arrival, 'burst_time': burst})
 
-# Run simulation button
+# Run simulation
 if st.button("Run Simulation"):
     arrival_time = {p['id']: p['arrival_time'] for p in processes}
     burst_time = {p['id']: p['burst_time'] for p in processes}
@@ -141,15 +139,23 @@ if st.button("Run Simulation"):
 
     avg_turnaround = sum(p['turnaround_time'] for p in processes) / len(processes)
 
+    # Tabular Results
     st.subheader("Results")
-    st.write(f"{'#Job':<5} {'Arrival':<8} {'Burst':<6} {'Start':<6} {'End':<6} {'Turnaround':<10}")
-    for p in processes:
-        st.write(f"{p['id']:<5} {p['arrival_time']:<8} {p['burst_time']:<6} {p['start_time']:<6.1f} {p['end_time']:<6.1f} {p['turnaround_time']:<10.1f}")
-    st.write(f"Average Turnaround Time: {avg_turnaround:.2f}")
+    result_df = pd.DataFrame([{
+        "Job": p['id'],
+        "Arrival": p['arrival_time'],
+        "Burst": p['burst_time'],
+        "Start": round(p['start_time'], 1),
+        "End": round(p['end_time'], 1),
+        "Turnaround": round(p['turnaround_time'], 1)
+    } for p in processes])
+    st.dataframe(result_df, use_container_width=True)
+    st.write(f"**Average Turnaround Time:** `{avg_turnaround:.2f}`")
 
+    # Gantt chart with queue (always expanded)
     def draw_gantt_with_queue(gantt_data, queue_snapshots):
         max_time = max(end_time.values())
-        fig, ax = plt.subplots(figsize=(14, 6))
+        fig, ax = plt.subplots(figsize=(18, 8))
         cmap = plt.colormaps.get_cmap('tab20')
         colors = {f'J{i+1}': mcolors.to_hex(cmap(i / max(len(processes), 1))) for i in range(len(processes))}
         cpu_ypos = {cpu: num_cpus - idx for idx, cpu in enumerate(cpu_names)}
@@ -195,5 +201,6 @@ if st.button("Run Simulation"):
         plt.grid(axis='x')
         return fig
 
+    # Always expanded chart with native fullscreen button
     fig = draw_gantt_with_queue(gantt_data, queue_snapshots)
-    st.pyplot(fig)
+    st.pyplot(fig, use_container_width=True)
