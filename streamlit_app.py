@@ -2,6 +2,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.colors as mcolors
+import pandas as pd
 import random
 
 # Title
@@ -141,12 +142,20 @@ if st.button("Run Simulation"):
 
     avg_turnaround = sum(p['turnaround_time'] for p in processes) / len(processes)
 
+    # Tabular Results
     st.subheader("Results")
-    st.write(f"{'#Job':<5} {'Arrival':<8} {'Burst':<6} {'Start':<6} {'End':<6} {'Turnaround':<10}")
-    for p in processes:
-        st.write(f"{p['id']:<5} {p['arrival_time']:<8} {p['burst_time']:<6} {p['start_time']:<6.1f} {p['end_time']:<6.1f} {p['turnaround_time']:<10.1f}")
-    st.write(f"Average Turnaround Time: {avg_turnaround:.2f}")
+    result_df = pd.DataFrame([{
+        "Job": p['id'],
+        "Arrival": p['arrival_time'],
+        "Burst": p['burst_time'],
+        "Start": round(p['start_time'], 1),
+        "End": round(p['end_time'], 1),
+        "Turnaround": round(p['turnaround_time'], 1)
+    } for p in processes])
+    st.dataframe(result_df, use_container_width=True)
+    st.write(f"**Average Turnaround Time:** `{avg_turnaround:.2f}`")
 
+    # Gantt chart with queue
     def draw_gantt_with_queue(gantt_data, queue_snapshots):
         max_time = max(end_time.values())
         fig, ax = plt.subplots(figsize=(14, 6))
