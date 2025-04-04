@@ -5,20 +5,19 @@ import matplotlib.colors as mcolors
 import pandas as pd
 import random
 
-# Page configuration
-st.set_page_config(layout="wide")
+# Title
 st.title("STRF Scheduling (with quantum time)")
 
-# Top input section
+# --- Top Input Row: Number of Jobs, CPUs, Chunk Unit, Quantum Time ---
 col1, col2, col3, col4 = st.columns(4)
 with col1:
-    num_jobs = st.number_input("Number of Jobs", min_value=1, max_value=10, value=3)
+    num_jobs = st.number_input("Number of Jobs", min_value=1, max_value=10, value=4)
 with col2:
     num_cpus = st.number_input("Number of CPUs", min_value=1, max_value=4, value=2)
 with col3:
     chunk_unit = st.number_input("Chunk Unit (e.g., 0.5, 1.0):", value=1.0)
 with col4:
-    quantum_time = st.number_input("Quantum Time", value=2.0)
+    quantum_time = st.number_input("Quantum Time:", value=2.0)
 
 # Random values setup
 def get_random_half_step(min_val, max_val):
@@ -48,8 +47,8 @@ for i in range(num_jobs):
         burst = st.number_input(f"Burst Time for J{i+1}", value=default_burst, key=f"burst_{i}")
     processes.append({'id': f'J{i+1}', 'arrival_time': arrival, 'burst_time': burst})
 
-# Simulation
-if st.button("Run Simulation"):
+# Simulation trigger
+if st.button("Run Special STRF"):
     arrival_time = {p['id']: p['arrival_time'] for p in processes}
     burst_time = {p['id']: p['burst_time'] for p in processes}
     remaining_time = burst_time.copy()
