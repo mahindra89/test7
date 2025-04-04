@@ -5,24 +5,20 @@ import matplotlib.colors as mcolors
 import pandas as pd
 import random
 
-# Streamlit page setup
+# Page configuration
 st.set_page_config(layout="wide")
-st.title("🔁 STRF Scheduling with Quantum Time")
+st.title("STRF Scheduling (with quantum time)")
 
-st.markdown("This simulator demonstrates the **Shortest Time Remaining First (STRF)** scheduling algorithm with support for **quantum-based scheduling** and multiple CPUs.")
-
-# --- Top input section ---
-with st.container():
-    st.subheader("🔧 Configuration")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        num_jobs = st.number_input("🔢 Number of Jobs", min_value=1, max_value=10, value=3)
-    with col2:
-        num_cpus = st.number_input("🧠 Number of CPUs", min_value=1, max_value=4, value=2)
-    with col3:
-        chunk_unit = st.number_input("⚙️ Chunk Unit (e.g., 0.5, 1.0)", value=1.0, help="Minimum unit of work assigned at a time.")
-    with col4:
-        quantum_time = st.number_input("⏱️ Quantum Time", value=2.0, help="Time interval between rescheduling.")
+# Top input section
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    num_jobs = st.number_input("Number of Jobs", min_value=1, max_value=10, value=3)
+with col2:
+    num_cpus = st.number_input("Number of CPUs", min_value=1, max_value=4, value=2)
+with col3:
+    chunk_unit = st.number_input("Chunk Unit (e.g., 0.5, 1.0):", value=1.0)
+with col4:
+    quantum_time = st.number_input("Quantum Time", value=2.0)
 
 # Random values setup
 def get_random_half_step(min_val, max_val):
@@ -32,29 +28,28 @@ def get_random_half_step(min_val, max_val):
 if 'random_values' not in st.session_state:
     st.session_state.random_values = []
 
-if st.button("🎲 Randomize Job Times"):
+if st.button("Randomize Job Times"):
     st.session_state.random_values = [
         {'arrival': get_random_half_step(0, 5), 'burst': get_random_half_step(1, 10)}
         for _ in range(num_jobs)
     ]
 
-# --- Job Inputs Section ---
-st.subheader("📋 Job Configuration")
+# Job Inputs
 processes = []
 for i in range(num_jobs):
-    with st.expander(f"Job J{i+1} Details", expanded=True):
-        default_arrival = st.session_state.random_values[i]['arrival'] if i < len(st.session_state.random_values) else 0.0
-        default_burst = st.session_state.random_values[i]['burst'] if i < len(st.session_state.random_values) else 3.0
+    st.subheader(f"Job J{i+1}")
+    default_arrival = st.session_state.random_values[i]['arrival'] if i < len(st.session_state.random_values) else 0.0
+    default_burst = st.session_state.random_values[i]['burst'] if i < len(st.session_state.random_values) else 3.0
 
-        c1, c2 = st.columns(2)
-        with c1:
-            arrival = st.number_input(f"📥 Arrival Time for J{i+1}", value=default_arrival, key=f"arrival_{i}")
-        with c2:
-            burst = st.number_input(f"💥 Burst Time for J{i+1}", value=default_burst, key=f"burst_{i}")
-        processes.append({'id': f'J{i+1}', 'arrival_time': arrival, 'burst_time': burst})
+    c1, c2 = st.columns(2)
+    with c1:
+        arrival = st.number_input(f"Arrival Time for J{i+1}", value=default_arrival, key=f"arrival_{i}")
+    with c2:
+        burst = st.number_input(f"Burst Time for J{i+1}", value=default_burst, key=f"burst_{i}")
+    processes.append({'id': f'J{i+1}', 'arrival_time': arrival, 'burst_time': burst})
 
-# --- Simulation ---
-if st.button("🚀 Run STRF Simulation"):
+# Simulation
+if st.button("Run Simulation"):
     arrival_time = {p['id']: p['arrival_time'] for p in processes}
     burst_time = {p['id']: p['burst_time'] for p in processes}
     remaining_time = burst_time.copy()
@@ -143,10 +138,11 @@ if st.button("🚀 Run STRF Simulation"):
     } for p in processes])
     avg_turnaround = sum(p['turnaround_time'] for p in processes) / len(processes)
 
-    with st.expander("📊 Result Table", expanded=True):
-        st.dataframe(df, use_container_width=True)
-        st.markdown(f"**📌 Average Turnaround Time:** `{avg_turnaround:.2f}`")
+    st.subheader("Result Table")
+    st.dataframe(df, use_container_width=True)
+    st.markdown(f"**Average Turnaround Time:** `{avg_turnaround:.2f}`")
 
+    # Gantt Chart
     def draw_gantt(gantt_data, queue_snapshots):
         max_time = max(end_time.values())
         fig, ax = plt.subplots(figsize=(18, 8))
@@ -180,11 +176,11 @@ if st.button("🚀 Run STRF Simulation"):
         ax.set_yticks(list(cpu_ypos.values()))
         ax.set_yticklabels(cpu_ypos.keys())
         ax.set_xlabel("Time (seconds)")
-        ax.set_title("⏱️ STRF Gantt Chart with Quantum Scheduling")
+        ax.set_title("STRF Gantt Chart with Quantum Scheduling")
         ax.legend([patches.Patch(color='red', label='Quantum Markers')])
         plt.grid(axis='x')
         plt.tight_layout()
         return fig
 
-    with st.expander("🖼️ Gantt Chart View", expanded=True):
-        st.pyplot(draw_gantt(gantt_data, queue_snapshots), use_container_width=True)
+    st.subheader("Gantt Chart")
+    st.pyplot(draw_gantt(gantt_data, queue_snapshots), use_container_width=True)
