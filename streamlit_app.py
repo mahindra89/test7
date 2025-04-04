@@ -6,7 +6,7 @@ import pandas as pd
 import random
 
 # Title
-st.title("STRF Scheduling Algorithm")
+st.title("STRF Scheduling Algorithm (with quantum time)")
 
 # Inputs
 num_jobs = st.number_input("Enter the number of jobs:", min_value=1, max_value=10, value=3)
