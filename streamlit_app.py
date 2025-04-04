@@ -2,6 +2,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.colors as mcolors
+from matplotlib.lines import Line2D
 import pandas as pd
 import random
 
@@ -176,7 +177,13 @@ if st.button("Run Special STRF"):
         ax.set_yticklabels(cpu_ypos.keys())
         ax.set_xlabel("Time (seconds)")
         ax.set_title("STRF Gantt Chart with Quantum Scheduling")
-        ax.legend([patches.Patch(color='red', label='Quantum Markers')])
+
+        # ✅ Fixed legend using Line2D
+        legend_elements = [
+            Line2D([0], [0], color='red', lw=2, label='Quantum Marker')
+        ]
+        ax.legend(handles=legend_elements, loc='upper right')
+
         plt.grid(axis='x')
         plt.tight_layout()
         return fig
